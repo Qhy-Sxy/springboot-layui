@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aaa.mapper.SoftWareMapper">
+    <select id="selectsoft" parameterType="map" resultType="map">
+      select s.* from software s
+        <where>1=1
+         <if test="name!=null and name!='' ">
+            and s.name like concat('%',concat(#{name},'%'))
+         </if>
+        </where> LIMIT #{begin},#{end}
+    </select>
+    <select id="selectCount" resultType="int">
+        select count(*) from software s <where>1=1
+        <if test="name!=null and name!='' ">
+            and s.name like concat('%',concat(#{name},'%'))
+        </if>
+    </where>
+    </select>
+    <insert id="add_do" parameterType="Software">
+        insert into software(name,version,publisher,price) values(#{name},#{version},#{publisher},#{price})
+    </insert>
+    <select id="selectSoftById" parameterType="int" resultType="Software">
+        select * from software where id=#{id}
+    </select>
+    <update id="update_do" parameterType="Software">
+        update software set name=#{name},version=#{version},publisher=#{publisher},price=#{price} where id=#{id}
+    </update>
+    <delete id="delete" parameterType="int">
+        delete from software where id=#{id}
+    </delete>
+</mapper>

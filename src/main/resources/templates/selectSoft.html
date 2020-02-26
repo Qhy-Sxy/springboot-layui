@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="layui/css/layui.css">
+    <script type="text/javascript" src="layui/layui.js"></script>
+    <script type="text/javascript" src="js/jquery-3.1.1.js"></script>
+</head>
+<body>
+<!--搜索条件  -->
+<div class="demoTable">
+   <div class="layui-inline">
+        <input class="layui-input" name="name" id="demoReload" placeholder="请输入name"  autocomplete="off">
+    </div>
+    <button id="searchBtn" class="layui-btn" data-type="reload">搜索</button>
+    <button id="addBtn" class="layui-btn" data-type="reload">添加</button>
+</div>
+<!--显示数据的表格  -->
+<table class="layui-hide" id="demo" lay-filter="test"></table>
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs" lay-event="edit" >修改</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+<script>
+    //使用到的插件   声明一些变量保存插件对象
+    layui.use(['laydate', 'laypage', 'layer', 'table','element'], function() {
+        var laydate = layui.laydate //日期
+            , laypage = layui.laypage //分页
+            , layer = layui.layer //弹层
+            , table = layui.table //表格
+        var element = layui.element; //导航的hover效果、二级菜单等功能，需要依赖element模块
+        element.on('nav(demo)', function (elem) {
+            layer.msg(elem.text());
+        });
+        //执行一个 table 实例     render 渲染,显示      /*分页查询*/
+        table.render({
+            elem: '#demo'    //jquery的id选择器   也就是table的id
+            , url: '/selectSoft2'     //数据接口
+            , title: '软件表'
+            , page: true    //是否开启分页
+            , method: 'post'
+            , limits: [3,5,10]
+            , limit: 10       //每页显示的条数
+            /*  ,toolbar: 'default'  */  //开启工具栏，此处显示默认图标，可以自定义模板，详见文档
+            /*  ,totalRow: true  *///开启合计行
+            , cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+            , cols: [
+                [
+                  {type: 'numbers'}
+                , {field: 'id', title: 'ID', width: 75,align: 'center'}
+                , {field: 'name', title: 'NAME', width: 150,align: 'center'} //width 支持：数字、百分比和不填写。你还可以通过 minWidth 参数局部定义当前单元格的最小宽度，layui 2.2.1 新增
+                , {field: 'version', title: 'VERSION',align: 'center'}
+                , {field: 'publisher', title: 'PUBLISHER',align: 'center'}
+                , {field: 'price', title: 'PRICE', align: 'center'}
+                , {field: 'right', toolbar: '#barDemo', align: 'center'}
+              ]
+            ]
+            , id: 'listData'
+        })
+        //监听行工具事件
+        table.on('tool(test)', function(obj){
+            //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
+            var data = obj.data //获得当前行数据
+                ,layEvent = obj.event; //获得 lay-event 对应的值
+            //修改
+            if(layEvent === 'edit'){
+                layer.open({
+                    type: 2, //layer的5种层类型   0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                    title: ['修改数据', 'font-size:18px;'],  //弹出框标题
+                    shade: [0.5, '#393D49'],     //遮罩层
+                    shadeClose:true,          //点击遮罩层外区域关闭遮罩层
+                    area: ['580px', '500px'],    //弹出框大小
+                    anim: 1,              //弹出动画
+                    content:'/selectSoftById?id='+data.id
+                });
+            }
+            //删除
+            if(layEvent === 'del'){
+                //操作
+                layer.confirm('真的要删除吗？', function (index) {
+                    $.post("/delete",{'id':data.id},function(result)
+                        {
+                            layer.msg(result.msg, {
+                                icon: 1,
+                                time: 1000 //2秒关闭（如果不配置，默认是3秒）
+                            }, function(){
+                                //刷新父页面
+                                parent.window.location.reload();
+                            });
+                        }
+                    );
+                });
+            }
+        })
+        //分页
+        laypage.render({
+            elem: 'pageDemo' //分页容器的id
+            ,skin: '#1E9FFF' //自定义选中色值
+            //,skip: true //开启跳页
+            ,jump: function(obj, first){
+                if(!first){
+                    layer.msg('第'+ obj.curr +'页', {offset: 'b'});
+                }
+            }
+        });
+        /*条件查询按钮*/
+        var $ = layui.$;
+        $('#searchBtn').on('click', function(){
+            //获取输入框
+            var demoReload = $('#demoReload');
+            //执行重载
+            table.reload('listData', {
+                page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+                ,where: {
+                    name: demoReload.val()
+                }
+            });
+        });
+        //添加
+        $("#addBtn").click(function () {
+           layer.open({
+               type:2,      //layer的5种层类型   0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+               title: ['新增', 'font-size:18px;'],  //弹出框标题
+               area: ['500px','350px'],    //设置弹框的大小
+               shadeClose:true,          //点击遮罩层外区域关闭遮罩层
+               anim: 1,              //弹出动画
+               content:'/add'     //写方法的路径  进入页面  此处也和easyui相同
+           })
+        })
+    })
+    </script>
+</body>
+</html>

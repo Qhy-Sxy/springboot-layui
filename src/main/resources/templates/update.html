@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>update</title>
+    <link rel="stylesheet" href="layui/css/layui.css">
+    <script type="text/javascript" src="layui/layui.js"></script>
+    <script type="text/javascript" src="js/jquery-3.1.1.js"></script>
+</head>
+<body>
+<form class="layui-form">
+    <input type="hidden" th:value="${software.id}" name="id">
+    <div class="layui-form-item">
+        <label class="layui-form-label">name</label>
+        <div class="layui-input-block">
+            <input type="text" name="name" th:value="${software.name}" lay-verify="title" autocomplete="off" placeholder="请输入软件名称" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">version</label>
+        <div class="layui-input-block">
+            <input type="text" name="version" th:value="${software.version}" placeholder="请输入版本号"  class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">publisher</label>
+        <div class="layui-input-block">
+            <input type="text" name="publisher" th:value="${software.publisher}" placeholder="请输入版公司名称"  class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">price</label>
+        <div class="layui-input-block">
+            <input type="text" name="price" th:value="${software.price}" placeholder="请输入价格"  class="layui-input">
+        </div>
+    </div>
+    <div style="margin-left: 210px">
+        <button class="layui-btn layui-btn-normal" lay-submit="" lay-filter="tijiao">提交</button>
+    </div>
+</form>
+<script type="text/javascript">
+    layui.use(['form', 'layer', 'laydate'], function(){
+        var form = layui.form
+            ,layer = layui.layer
+            ,laydate = layui.laydate
+            ,$=layui.jquery;
+        //监听提交
+        form.on('submit(tijiao)', function(data){
+            //data.field表单所有信息
+            $.post("/update_do",data.field,function(result)
+                {
+                    layer.msg(result.msg, {
+                        icon: 1,
+                        time: 1000 //2秒关闭（如果不配置，默认是3秒）
+                    }, function(){
+                        //刷新父页面
+                        parent.window.location.reload();
+                    });
+                }
+            );
+            return false;
+        });
+    });
+</script>
+</body>
+</html>
